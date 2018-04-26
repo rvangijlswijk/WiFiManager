@@ -25,6 +25,7 @@ const char HTTP_ROOT_MAIN[]        PROGMEM = "<h1>{v}</h1><h3>WiFiManager</h3>";
 const char * const HTTP_PORTAL_MENU[] PROGMEM = {
 "<form action='/wifi'    method='get'><button>Configure WiFi</button></form><br/>\n", // MENU_WIFI
 "<form action='/0wifi'   method='get'><button>Configure WiFi (No Scan)</button></form><br/>\n", // MENU_WIFINOSCAN
+"<form action='/nowifi_confirm' method='get'><button>Disable WiFi</button></form><br/>\n", // MENU_NOWIFI
 "<form action='/info'    method='get'><button>Info</button></form><br/>\n", // MENU_INFO
 "<form action='/param'   method='get'><button>Setup</button></form><br/>\n",//MENU_PARAM
 "<form action='/close'   method='get'><button>Close</button></form><br/>\n", // MENU_CLOSE
@@ -109,6 +110,16 @@ const char HTTP_HELP[]             PROGMEM =
  "<td>Erase WiFi configuration and reboot Device. Device will not reconnect to a network until new WiFi configuration data is entered.</td></tr>"
  "</table>"
  "<p/>More information about WiFiManager at <a href='https://github.com/tzapu/WiFiManager'>https://github.com/tzapu/WiFiManager</a>.";
+ 
+const char HTTP_NOWIFI_CONFIRM[]    PROGMEM = 
+ "<br/><h3>Disable WiFi</h3><hr>"
+ "<br/>Are you sure you want to disable WiFi?"
+ "<p/><a href='/nowifi'><button>Yes!!</button></a>"
+ "<p/><a href='/'><button>No.</button></a>";
+
+const char HTTP_NOWIFI_RESTART[]    PROGMEM = 
+ "<br/><h3>WiFi disabled</h3>"
+ "<p/><a href='/restart'><button>Restart the device</button></a>";
 
 #ifdef JSTEST
 const char HTTP_JS[] PROGMEM = 
@@ -186,6 +197,7 @@ const char S_titlereset[]         PROGMEM = "Reset";
 const char S_titleerase[]         PROGMEM = "Erase";
 const char S_titleclose[]         PROGMEM = "Close";
 const char S_options[]            PROGMEM = "options";
+const char S_disablewifi[]        PROGMEM = "Disable WiFi";
 const char S_nonetworks[]         PROGMEM = "No networks found. Refresh to scan again.";
 const char S_staticip[]           PROGMEM = "Static IP";
 const char S_staticgw[]           PROGMEM = "Static Gateway";
@@ -210,10 +222,11 @@ const char D_HR[]                 PROGMEM = "--------------------";
 // -----------------------------------------------------------------------------------------------
 // DO NOT EDIT BELOW THIS LINE
 
-const uint8_t _nummenutokens = 9;
-const char * const _menutokens[9] PROGMEM = {
+const uint8_t _nummenutokens = 10;
+const char * const _menutokens[10] PROGMEM = {
     "wifi",
     "wifinoscan",
+    "nowifi_confirm",
     "info",
     "param",
     "close",
@@ -226,6 +239,8 @@ const char * const _menutokens[9] PROGMEM = {
 const char R_root[]               PROGMEM = "/";
 const char R_wifi[]               PROGMEM = "/wifi";
 const char R_wifinoscan[]         PROGMEM = "/0wifi";
+const char R_nowifi[]             PROGMEM = "/nowifi";
+const char R_nowifi_confirm[]     PROGMEM = "/nowifi_confirm";
 const char R_wifisave[]           PROGMEM = "/wifisave";
 const char R_info[]               PROGMEM = "/info";
 const char R_param[]              PROGMEM = "/param";

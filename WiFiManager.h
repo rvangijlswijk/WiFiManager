@@ -234,6 +234,8 @@ class WiFiManager
     void          debugPlatformInfo();
     String        htmlEntities(String str);
 
+    static const int    wifiDisableFlagAddr    = 3;
+
   private:
     std::unique_ptr<DNSServer>        dnsServer;
 
@@ -245,7 +247,7 @@ class WiFiManager
         std::unique_ptr<WM_WebServer> server;
 
     std::vector<uint8_t> _menuIds;
-    std::vector<const char *> _menuIdsDefault = {"wifi","info","exit"};
+    std::vector<const char *> _menuIdsDefault = {"wifi","nowifi_confirm","info","exit"};
 
     // ip configs @todo struct ?
     IPAddress     _ap_static_ip;
@@ -327,6 +329,8 @@ class WiFiManager
     void          handleRoot();
     void          handleWifi(boolean scan);
     void          handleWifiSave();
+    void          handleNoWifi();
+    void          handleNoWifiConfirm();
     void          handleInfo();
     void          handleReset();
     void          handleNotFound();

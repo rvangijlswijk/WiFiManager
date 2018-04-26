@@ -11,6 +11,7 @@
  */
 
 #include "WiFiManager.h"
+#include <EEPROM.h>
 
 #ifdef ESP32
 uint8_t WiFiManager::_lastconxresulttmp = WL_IDLE_STATUS;
@@ -397,6 +398,8 @@ void WiFiManager::setupConfigPortal() {
   server->on((String)FPSTR(R_root), std::bind(&WiFiManager::handleRoot, this));
   server->on((String)FPSTR(R_wifi), std::bind(&WiFiManager::handleWifi, this, true));
   server->on((String)FPSTR(R_wifinoscan), std::bind(&WiFiManager::handleWifi, this, false));
+  server->on((String)FPSTR(R_nowifi), std::bind(&WiFiManager::handleNoWifi, this));
+  server->on((String)FPSTR(R_nowifi_confirm), std::bind(&WiFiManager::handleNoWifiConfirm, this));
   server->on((String)FPSTR(R_wifisave), std::bind(&WiFiManager::handleWifiSave, this));
   server->on((String)FPSTR(R_info), std::bind(&WiFiManager::handleInfo, this));
   server->on((String)FPSTR(R_param), std::bind(&WiFiManager::handleParam, this));
@@ -457,7 +460,7 @@ boolean  WiFiManager::startConfigPortal(char const *apName, char const *apPasswo
   _configPortalStart = millis();
 
   // start access point
-  DEBUG_WM(DEBUG_VERBOSE,F("Enabling AP"));
+  DEBUG_WM(DEBUG_VERBOSE,F("Enabling Access Point!!!"));
   startAP();
 
   // init configportal
@@ -849,6 +852,40 @@ void WiFiManager::handleWifi(boolean scan) {
   // server->close(); // testing reliability fix for content length mismatches during mutiple flood hits
 
   DEBUG_WM(DEBUG_DEV,F("Sent config page"));
+}
+
+/**
+ * HTTPD CALLBACK actually disable wifi
+ */
+void WiFiManager::handleNoWifi() {
+  DEBUG_WM(DEBUG_VERBOSE,F("<- HTTP no wifi action"));
+  String page = getHTTPHead(FPSTR(S_disablewifi)); // @token options
+  String str  = FPSTR(HTTP_NOWIFI_RESTART);
+  str.replace(FPSTR(T_v),configPortalActive ? _apName : WiFi.localIP().toString()); // use ip if ap is not active for heading
+  page += str;
+  page += FPSTR(HTTP_END);
+
+  DEBUG_WM(DEBUG_VERBOSE,F("Committing disable flag to EEPROM"));
+  EEPROM.write(wifiDisableFlagAddr, 1);
+  EEPROM.commit();
+
+  server->sendHeader(FPSTR(HTTP_HEAD_CL), String(page.length()));
+  server->send(200, FPSTR(HTTP_HEAD_CT), page);
+}
+
+/**
+ * HTTPD CALLBACK confirm that user wants to disable wifi
+ */
+void WiFiManager::handleNoWifiConfirm() {
+  DEBUG_WM(DEBUG_VERBOSE,F("<- HTTP no wifi confirm"));
+  String page = getHTTPHead(FPSTR(S_disablewifi)); // @token options
+  String str  = FPSTR(HTTP_NOWIFI_CONFIRM);
+  str.replace(FPSTR(T_v),configPortalActive ? _apName : WiFi.localIP().toString()); // use ip if ap is not active for heading
+  page += str;
+  page += FPSTR(HTTP_END);
+
+  server->sendHeader(FPSTR(HTTP_HEAD_CL), String(page.length()));
+  server->send(200, FPSTR(HTTP_HEAD_CT), page);
 }
 
 /**
@@ -1709,6 +1746,8 @@ bool WiFiManager::erase(bool opt){
  */
 void WiFiManager::resetSettings() {
   DEBUG_WM(F("SETTINGS ERASED"));
+  EEPROM.write(wifiDisableFlagAddr, 0);
+  EEPROM.commit();
   WiFi_enableSTA(true,true);
   WiFi.persistent(true);
   WiFi.disconnect(true);
@@ -2331,6 +2370,9 @@ bool WiFiManager::WiFi_eraseConfig() {
                 return false;
             }
         }
+
+        EEPROM.write(wifiDisableFlagAddr, 0);
+        EEPROM.commit();
         return true;
       #endif
     #elif defined(ESP32)
